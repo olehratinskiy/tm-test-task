@@ -299,6 +299,3 @@ Resources:
           ContainerPort: 80
           TargetGroupArn: !Ref WebPageTargetGroup
       TaskDefinition: !Ref WebPageTaskDefinition
-
-
-
