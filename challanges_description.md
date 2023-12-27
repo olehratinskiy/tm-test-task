@@ -8,7 +8,7 @@ During the completion of this task, I encountered challenges that took more time
 
 ### 2. Couldn't resolve ECS service failures.
 #### Error:
-> ResourceInitializationError: failed to invoke EFS utils commands to set up EFS volumes: stderr: Failed to resolve "<filesystem-id>.efs.us-east-1.amazonaws.com".
+> ResourceInitializationError: failed to invoke EFS utils commands to set up EFS volumes: stderr: Failed to resolve "filesystem-id.efs.us-east-1.amazonaws.com".
 
 #### Solution:
 > VPC had the parameter Enable DNS hostnames: false. I changed to true and everything mounted perfectly.
