@@ -1,7 +1,7 @@
 # tm-test-task
 
 ## Deployment:
-1. Clone this repository using git clone https://github.com/olehratinskiy/tm-test-task.git
+1. Clone this repository using ```git clone https://github.com/olehratinskiy/tm-test-task.git```
 2. Log in to AWS Management Console and navigate to CloudFormation.
 3. Select "Create stack" "With new resources".
 4. In the block "Specify template" choose "Upload a template file".
