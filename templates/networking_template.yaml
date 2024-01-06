@@ -75,19 +75,19 @@ Resources:
 
 Outputs:
   VPC:
-    Description: Referance to VPC
+    Description: Reference to VPC
     Value: !Ref TaskVPC
     Export:
       Name: TaskVPC
 
   SubnetA:
-    Description: Referance to first subnet
+    Description: Reference to first subnet
     Value: !Ref TaskSubnetA
     Export:
       Name: TaskSubnetA
 
   SubnetB:
-    Description: Referance to second subnet
+    Description: Reference to second subnet
     Value: !Ref TaskSubnetB
     Export:
       Name: TaskSubnetB

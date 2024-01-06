@@ -68,7 +68,7 @@ Resources:
 
 Outputs:
   WebPageEFS:
-    Description: Referance to tm-devops-trainee-efs
+    Description: Reference to tm-devops-trainee-efs
     Value: !Ref WebPageEFS
     Export:
       Name: WebPageEFS

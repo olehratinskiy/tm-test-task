@@ -44,7 +44,7 @@ Resources:
 
 Outputs:
   TargetGroup:
-    Description: Referance to target group
+    Description: Reference to target group
     Value: !Ref WebPageTargetGroup
     Export:
       Name: WebPageTargetGroup

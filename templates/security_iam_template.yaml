@@ -78,31 +78,31 @@ Resources:
 
 Outputs:
   ALBSecurityGroup:
-    Description: Referance to load balancer security group
+    Description: Reference to load balancer security group
     Value: !Ref ALBSecurityGroup
     Export:
       Name: ALBSecurityGroup
 
   ECSSecurityGroup:
-    Description: Referance to ECS security group
+    Description: Reference to ECS security group
     Value: !Ref ECSSecurityGroup
     Export:
       Name: ECSSecurityGroup
 
   EFSSecurityGroup:
-    Description: Referance to EFS security group
+    Description: Reference to EFS security group
     Value: !Ref EFSSecurityGroup
     Export:
       Name: EFSSecurityGroup
 
   EC2Profile:
-    Description: Referance to EC2 instance profile
+    Description: Reference to EC2 instance profile
     Value: !Ref EC2InstanceProfile
     Export:
       Name: EC2InstanceProfile
 
   TaskRoleArn:
-    Description: Referance to task role arn
+    Description: Reference to task role arn
     Value: !GetAtt TaskRole.Arn
     Export:
       Name: TaskRoleArn
