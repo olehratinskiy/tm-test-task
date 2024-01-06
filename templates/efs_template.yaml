@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  WebPageEFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      BackupPolicy:
+        Status: DISABLED
+      Encrypted: true
+      PerformanceMode: generalPurpose
+      ThroughputMode: bursting
+      FileSystemTags:
+        - Key: Name
+          Value: tm-devops-trainee-efs
+
+  MountTargetSubnetA:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref WebPageEFS
+      SubnetId:
+        Fn::ImportValue: TaskSubnetA
+      SecurityGroups:
+        - Fn::ImportValue: EFSSecurityGroup
+
+  MountTargetSubnetB:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref WebPageEFS
+      SubnetId:
+        Fn::ImportValue: TaskSubnetB
+      SecurityGroups:
+        - Fn::ImportValue: EFSSecurityGroup
+
+  TmpEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-079db87dc4c10ac91
+      InstanceType: t2.micro
+      KeyName: main
+      SubnetId:
+        Fn::ImportValue: TaskSubnetA
+      IamInstanceProfile:
+        Fn::ImportValue: EC2InstanceProfile
+      SecurityGroupIds:
+        - Fn::ImportValue: ECSSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          while ! nslookup ${WebPageEFS}.efs.us-east-1.amazonaws.com; do
+            sleep 10
+          done
+
+          sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${WebPageEFS}.efs.us-east-1.amazonaws.com:/ /mnt
+
+          cd /mnt
+          sudo touch index.html
+          sudo bash -c 'echo "
+          <!DOCTYPE html>
+          <html lang=\"en\">
+              <head>
+                  <meta charset=\"UTF-8\">
+                  <title>Test Page</title>
+              </head>
+              <body>
+                  <h1> Hello, Techmagic! </h1>
+              </body>
+          </html>" > index.html'
+
+Outputs:
+  WebPageEFS:
+    Description: Referance to tm-devops-trainee-efs
+    Value: !Ref WebPageEFS
+    Export:
+      Name: WebPageEFS

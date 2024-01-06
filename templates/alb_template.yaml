@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  WebPageALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Name: tm-devops-trainee-alb
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::ImportValue: ALBSecurityGroup
+      Subnets:
+        - Fn::ImportValue: TaskSubnetA
+        - Fn::ImportValue: TaskSubnetB
+
+  WebPageTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: WebPageALB
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Name: WebPageTargetGroup
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: TaskVPC
+
+  WebPageListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebPageTargetGroup
+      LoadBalancerArn: !Ref WebPageALB
+      Port: 80
+      Protocol: HTTP
+
+
+Outputs:
+  TargetGroup:
+    Description: Referance to target group
+    Value: !Ref WebPageTargetGroup
+    Export:
+      Name: WebPageTargetGroup

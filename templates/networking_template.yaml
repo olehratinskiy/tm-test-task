@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  TaskVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: TaskVPC
+
+  TaskSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.0/28
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: TaskSubnetA
+
+  TaskSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.0.16/28
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: TaskSubnetB
+
+  TaskRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: TaskRouteTable
+
+  TaskIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TaskIGW
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref TaskIGW
+      VpcId: !Ref TaskVPC
+
+  SubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TaskRouteTable
+      SubnetId: !Ref TaskSubnetA
+
+  SubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TaskRouteTable
+      SubnetId: !Ref TaskSubnetB
+
+  InternetGatewayRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      GatewayId: !Ref TaskIGW
+      RouteTableId: !Ref TaskRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+
+Outputs:
+  VPC:
+    Description: Referance to VPC
+    Value: !Ref TaskVPC
+    Export:
+      Name: TaskVPC
+
+  SubnetA:
+    Description: Referance to first subnet
+    Value: !Ref TaskSubnetA
+    Export:
+      Name: TaskSubnetA
+
+  SubnetB:
+    Description: Referance to second subnet
+    Value: !Ref TaskSubnetB
+    Export:
+      Name: TaskSubnetB

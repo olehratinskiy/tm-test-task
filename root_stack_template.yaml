@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  NetworkingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/or-cf-templates/networking_template.yaml
+
+  SecurityIAMStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: NetworkingStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/or-cf-templates/security_iam_template.yaml
+
+  ALBStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: SecurityIAMStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/or-cf-templates/alb_template.yaml
+
+  EFSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: ALBStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/or-cf-templates/efs_template.yaml
+
+  ECSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: EFSStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/or-cf-templates/ecs_template.yaml

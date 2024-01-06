@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allows input 80 port and output everything
+      VpcId:
+        Fn::ImportValue: TaskVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: ALBSecurityGroup
+
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allows input 80 port from ALB and output everything
+      VpcId:
+        Fn::ImportValue: TaskVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: ECSSecurityGroup
+
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allows input 2049 port and output everything
+      VpcId:
+        Fn::ImportValue: TaskVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: !GetAtt ECSSecurityGroup.GroupId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: EFSSecurityGroup
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: TaskRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref TaskRole
+
+Outputs:
+  ALBSecurityGroup:
+    Description: Referance to load balancer security group
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: ALBSecurityGroup
+
+  ECSSecurityGroup:
+    Description: Referance to ECS security group
+    Value: !Ref ECSSecurityGroup
+    Export:
+      Name: ECSSecurityGroup
+
+  EFSSecurityGroup:
+    Description: Referance to EFS security group
+    Value: !Ref EFSSecurityGroup
+    Export:
+      Name: EFSSecurityGroup
+
+  EC2Profile:
+    Description: Referance to EC2 instance profile
+    Value: !Ref EC2InstanceProfile
+    Export:
+      Name: EC2InstanceProfile
+
+  TaskRoleArn:
+    Description: Referance to task role arn
+    Value: !GetAtt TaskRole.Arn
+    Export:
+      Name: TaskRoleArn
