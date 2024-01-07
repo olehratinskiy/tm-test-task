@@ -10,8 +10,8 @@ Resources:
       SecurityGroups:
         - Fn::ImportValue: ALBSecurityGroup
       Subnets:
-        - Fn::ImportValue: TaskSubnetA
-        - Fn::ImportValue: TaskSubnetB
+        - Fn::ImportValue: PublicSubnetA
+        - Fn::ImportValue: PublicSubnetB
 
   WebPageTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

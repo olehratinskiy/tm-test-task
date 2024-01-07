@@ -11,7 +11,7 @@ Resources:
         - Key: Name
           Value: TaskVPC
 
-  TaskSubnetA:
+  PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: us-east-1a
@@ -20,9 +20,9 @@ Resources:
       VpcId: !Ref TaskVPC
       Tags:
         - Key: Name
-          Value: TaskSubnetA
+          Value: PublicSubnetA
 
-  TaskSubnetB:
+  PublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: us-east-1b
@@ -31,15 +31,37 @@ Resources:
       VpcId: !Ref TaskVPC
       Tags:
         - Key: Name
-          Value: TaskSubnetB
+          Value: PublicSubnetB
 
-  TaskRouteTable:
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.32/28
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: PrivateSubnetA
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.0.48/28
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: PrivateSubnetB
+
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref TaskVPC
       Tags:
         - Key: Name
-          Value: TaskRouteTable
+          Value: PublicRouteTable
 
   TaskIGW:
     Type: AWS::EC2::InternetGateway
@@ -54,23 +76,64 @@ Resources:
       InternetGatewayId: !Ref TaskIGW
       VpcId: !Ref TaskVPC
 
-  SubnetARouteTableAssociation:
+  PublicSubnetAAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref TaskRouteTable
-      SubnetId: !Ref TaskSubnetA
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetA
 
-  SubnetBRouteTableAssociation:
+  PublicSubnetBAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref TaskRouteTable
-      SubnetId: !Ref TaskSubnetB
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetB
 
   InternetGatewayRoute:
     Type: AWS::EC2::Route
     Properties:
       GatewayId: !Ref TaskIGW
-      RouteTableId: !Ref TaskRouteTable
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NATGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnetA
+      Tags:
+        - Key: Name
+          Value: TaskNAT
+
+  NATGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TaskVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+  PrivateSubnetAAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetA
+
+  PrivateSubnetBAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetB
+
+  NatGatewayRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
 
 Outputs:
@@ -81,13 +144,25 @@ Outputs:
       Name: TaskVPC
 
   SubnetA:
-    Description: Reference to first subnet
-    Value: !Ref TaskSubnetA
+    Description: Reference to first private subnet
+    Value: !Ref PrivateSubnetA
     Export:
       Name: TaskSubnetA
 
   SubnetB:
-    Description: Reference to second subnet
-    Value: !Ref TaskSubnetB
+    Description: Reference to second private subnet
+    Value: !Ref PrivateSubnetB
     Export:
       Name: TaskSubnetB
+
+  PublicSubnetA:
+    Description: Reference to first public subnet
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: PublicSubnetA
+
+  PublicSubnetB:
+    Description: Reference to second public subnet
+    Value: !Ref PublicSubnetB
+    Export:
+      Name: PublicSubnetB
