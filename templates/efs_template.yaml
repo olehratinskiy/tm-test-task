@@ -1,4 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  EFSName:
+    Type: String
+
+  AMIId:
+    Type: String
+
+  EC2Type:
+    Type: String
+
+  KeysName:
+    Type: String
+
 
 Resources:
   WebPageEFS:
@@ -11,7 +24,7 @@ Resources:
       ThroughputMode: bursting
       FileSystemTags:
         - Key: Name
-          Value: tm-devops-trainee-efs
+          Value: !Ref EFSName
 
   MountTargetSubnetA:
     Type: AWS::EFS::MountTarget
@@ -34,9 +47,9 @@ Resources:
   TmpEC2:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-079db87dc4c10ac91
-      InstanceType: t2.micro
-      KeyName: main
+      ImageId: !Ref AMIId
+      InstanceType: !Ref EC2Type
+      KeyName: !Ref KeysName
       SubnetId:
         Fn::ImportValue: TaskSubnetA
       IamInstanceProfile:

@@ -1,4 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  AllDestinationsCidr:
+    Type: String
+
+  ECSRolePolicy:
+    Type: String
+
+  EFSRolePolicy:
+    Type: String
+
+  HttpIngressPort:
+    Type: Number
+
+  EFSIngressPort:
+    Type: Number
 
 Resources:
   ALBSecurityGroup:
@@ -9,12 +24,12 @@ Resources:
         Fn::ImportValue: TaskVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
+          FromPort: !Ref HttpIngressPort
+          ToPort: !Ref HttpIngressPort
+          CidrIp: !Ref AllDestinationsCidr
       SecurityGroupEgress:
         - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref AllDestinationsCidr
       Tags:
         - Key: Name
           Value: ALBSecurityGroup
@@ -27,12 +42,12 @@ Resources:
         Fn::ImportValue: TaskVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: !Ref HttpIngressPort
+          ToPort: !Ref HttpIngressPort
           SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
       SecurityGroupEgress:
         - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref AllDestinationsCidr
       Tags:
         - Key: Name
           Value: ECSSecurityGroup
@@ -45,12 +60,12 @@ Resources:
         Fn::ImportValue: TaskVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 2049
-          ToPort: 2049
+          FromPort: !Ref EFSIngressPort
+          ToPort: !Ref EFSIngressPort
           SourceSecurityGroupId: !GetAtt ECSSecurityGroup.GroupId
       SecurityGroupEgress:
         - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref AllDestinationsCidr
       Tags:
         - Key: Name
           Value: EFSSecurityGroup
@@ -67,8 +82,8 @@ Resources:
               Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-        - arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess
+        - !Ref ECSRolePolicy
+        - !Ref EFSRolePolicy
 
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile

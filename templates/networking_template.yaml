@@ -1,10 +1,34 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  TaskVpcCidr:
+    Type: String
+
+  AvailabilityZoneA:
+    Type: String
+
+  AvailabilityZoneB:
+    Type: String
+
+  PublicSubnetCidrA:
+    Type: String
+
+  PublicSubnetCidrB:
+    Type: String
+
+  PrivateSubnetCidrA:
+    Type: String
+
+  PrivateSubnetCidrB:
+    Type: String
+
+  AllDestinationsCidr:
+    Type: String
 
 Resources:
   TaskVPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/24
+      CidrBlock: !Ref TaskVpcCidr
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
@@ -14,8 +38,8 @@ Resources:
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.0.0.0/28
+      AvailabilityZone: !Ref AvailabilityZoneA
+      CidrBlock: !Ref PublicSubnetCidrA
       MapPublicIpOnLaunch: true
       VpcId: !Ref TaskVPC
       Tags:
@@ -25,8 +49,8 @@ Resources:
   PublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.0.0.16/28
+      AvailabilityZone: !Ref AvailabilityZoneB
+      CidrBlock: !Ref PublicSubnetCidrB
       MapPublicIpOnLaunch: true
       VpcId: !Ref TaskVPC
       Tags:
@@ -36,8 +60,8 @@ Resources:
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.0.0.32/28
+      AvailabilityZone: !Ref AvailabilityZoneA
+      CidrBlock: !Ref PrivateSubnetCidrA
       MapPublicIpOnLaunch: false
       VpcId: !Ref TaskVPC
       Tags:
@@ -47,8 +71,8 @@ Resources:
   PrivateSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.0.0.48/28
+      AvailabilityZone: !Ref AvailabilityZoneB
+      CidrBlock: !Ref PrivateSubnetCidrB
       MapPublicIpOnLaunch: false
       VpcId: !Ref TaskVPC
       Tags:
@@ -93,7 +117,7 @@ Resources:
     Properties:
       GatewayId: !Ref TaskIGW
       RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
+      DestinationCidrBlock: !Ref AllDestinationsCidr
 
   NATGateway:
     Type: AWS::EC2::NatGateway
@@ -134,7 +158,7 @@ Resources:
     Properties:
       NatGatewayId: !Ref NATGateway
       RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
+      DestinationCidrBlock: !Ref AllDestinationsCidr
 
 Outputs:
   VPC:

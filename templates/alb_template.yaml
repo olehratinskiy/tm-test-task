@@ -1,11 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  HttpIngressPort:
+    Type: Number
+
+  ALBName:
+    Type: String
 
 Resources:
   WebPageALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Type: application
-      Name: tm-devops-trainee-alb
+      Name: !Ref ALBName
       Scheme: internet-facing
       SecurityGroups:
         - Fn::ImportValue: ALBSecurityGroup
@@ -24,7 +30,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 5
       Name: WebPageTargetGroup
-      Port: 80
+      Port: !Ref HttpIngressPort
       Protocol: HTTP
       TargetType: ip
       UnhealthyThresholdCount: 2
@@ -38,7 +44,7 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref WebPageTargetGroup
       LoadBalancerArn: !Ref WebPageALB
-      Port: 80
+      Port: !Ref HttpIngressPort
       Protocol: HTTP
 
 

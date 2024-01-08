@@ -1,37 +1,61 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  HttpIngressPort:
+    Type: Number
+
+  ECSClusterName:
+    Type: String
+
+  ECSClusterCapacityProvider:
+    Type: String
+
+  ECSTaskDefinitionFamilyName:
+    Type: String
+
+  ECSTaskDefinitionImage:
+    Type: String
+
+  CPUAmount:
+    Type: Number
+
+  MemoryAmount:
+    Type: Number
+
+  ECSServiceTasksCount:
+    Type: Number
+
 
 Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: ECSCluster
+      ClusterName: !Ref ECSClusterName
       CapacityProviders:
-        - FARGATE
-        - FARGATE_SPOT
+        - !Ref ECSClusterCapacityProvider
 
   WebPageTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ExecutionRoleArn:
         Fn::ImportValue: TaskRoleArn
-      Family: WebPageTaskDefinition
+      Family: !Ref ECSTaskDefinitionFamilyName
       ContainerDefinitions:
-        - Name: nginx
+        - Name: !Ref ECSTaskDefinitionImage
           MountPoints:
             - SourceVolume: static-volume
               ContainerPath: /usr/share/nginx/html
               ReadOnly: false
-          Image: nginx:latest
+          Image: !Sub "${ECSTaskDefinitionImage}:latest"
           PortMappings:
-            - ContainerPort: 80
-              HostPort: 80
+            - ContainerPort: !Ref HttpIngressPort
+              HostPort: !Ref HttpIngressPort
               Protocol: tcp
           Essential: true
-      Cpu: 256
-      Memory: 512
+      Cpu: !Ref CPUAmount
+      Memory: !Ref MemoryAmount
       NetworkMode: awsvpc
       RequiresCompatibilities:
-        - FARGATE
+        - !Ref ECSClusterCapacityProvider
       Volumes:
         - Name: static-volume
           EFSVolumeConfiguration:
@@ -43,8 +67,8 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref ECSCluster
-      DesiredCount: 2
-      LaunchType: FARGATE
+      DesiredCount: !Ref ECSServiceTasksCount
+      LaunchType: !Ref ECSClusterCapacityProvider
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
@@ -55,8 +79,8 @@ Resources:
             - Fn::ImportValue: TaskSubnetB
       ServiceName: WebPageService
       LoadBalancers:
-        - ContainerName: nginx
-          ContainerPort: 80
+        - ContainerName: !Ref ECSTaskDefinitionImage
+          ContainerPort: !Ref HttpIngressPort
           TargetGroupArn:
             Fn::ImportValue: WebPageTargetGroup
       TaskDefinition: !Ref WebPageTaskDefinition

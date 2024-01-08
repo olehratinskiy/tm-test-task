@@ -1,31 +1,189 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: or-cf-templates
+    Description: S3 templates bucket name
+
+  TaskVpcCidr:
+    Type: String
+    Default: 10.0.0.0/24
+    Description: CIDR block for TaskVPC
+
+  AvailabilityZoneA:
+    Type: String
+    Default: us-east-1a
+    Description: Availability zone for subnet A
+
+  AvailabilityZoneB:
+    Type: String
+    Default: us-east-1b
+    Description: Availability zone for subnet B
+
+  PublicSubnetCidrA:
+    Type: String
+    Default: 10.0.0.0/28
+    Description: CIDR for subnet A
+
+  PublicSubnetCidrB:
+    Type: String
+    Default: 10.0.0.16/28
+    Description: CIDR for subnet B
+
+  PrivateSubnetCidrA:
+    Type: String
+    Default: 10.0.0.32/28
+    Description: CIDR for subnet A
+
+  PrivateSubnetCidrB:
+    Type: String
+    Default: 10.0.0.48/28
+    Description: CIDR for subnet B
+
+  AllDestinationsCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR that allows allows every destination
+
+  ECSRolePolicy:
+    Type: String
+    Default: arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+    Description: Policy that allows task execution
+
+  EFSRolePolicy:
+    Type: String
+    Default: arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess
+    Description: Policy that allows full access to EFS
+
+  HttpIngressPort:
+    Type: Number
+    Default: 80
+    Description: HTTP port number which is open for ingress
+
+  ALBName:
+    Type: String
+    Default: tm-devops-trainee-alb
+    Description: Name of ALB
+
+  EFSIngressPort:
+    Type: Number
+    Default: 2049
+    Description: EFS port number which is open for ingress
+
+  EFSName:
+    Type: String
+    Default: tm-devops-trainee-efs
+    Description: Name of EFS
+
+  AMIId:
+    Type: String
+    Default: ami-079db87dc4c10ac91
+    Description: AMI used to create EC2 that sends data to EFS
+
+  EC2Type:
+    Type: String
+    Default: t2.micro
+    Description: Type of EC2 that sends data to EFS
+
+  KeysName:
+    Type: String
+    Default: main
+    Description: Name of EC2 keys
+
+  ECSClusterName:
+    Type: String
+    Default: ECSCluster
+    Description: Name of ECS cluster
+
+  ECSClusterCapacityProvider:
+    Type: String
+    Default: FARGATE
+    Description: ECS cluster capacity provider type
+
+  ECSTaskDefinitionFamilyName:
+    Type: String
+    Default: WebPageTaskDefinition
+    Description: Name of task definition family
+
+  ECSTaskDefinitionImage:
+    Type: String
+    Default: nginx
+    Description: Name of image defined in task definition
+
+  CPUAmount:
+    Type: Number
+    Default: 256
+    Description: Amount of container CPU
+
+  MemoryAmount:
+    Type: Number
+    Default: 512
+    Description: Amount of container memory
+
+  ECSServiceTasksCount:
+    Type: Number
+    Default: 2
+    Description: Number of service tasks
+
 
 Resources:
   NetworkingStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/or-cf-templates/networking_template.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/networking_template.yaml
+      Parameters:
+        TaskVpcCidr: !Ref TaskVpcCidr
+        AvailabilityZoneA: !Ref AvailabilityZoneA
+        AvailabilityZoneB: !Ref AvailabilityZoneB
+        PublicSubnetCidrA: !Ref PublicSubnetCidrA
+        PublicSubnetCidrB: !Ref PublicSubnetCidrB
+        PrivateSubnetCidrA: !Ref PrivateSubnetCidrA
+        PrivateSubnetCidrB: !Ref PrivateSubnetCidrB
+        AllDestinationsCidr: !Ref AllDestinationsCidr
 
   SecurityIAMStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: NetworkingStack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/or-cf-templates/security_iam_template.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/security_iam_template.yaml
+      Parameters:
+        AllDestinationsCidr: !Ref AllDestinationsCidr
+        ECSRolePolicy: !Ref ECSRolePolicy
+        EFSRolePolicy: !Ref EFSRolePolicy
+        HttpIngressPort: !Ref HttpIngressPort
+        EFSIngressPort: !Ref EFSIngressPort
 
   ALBStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: SecurityIAMStack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/or-cf-templates/alb_template.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/alb_template.yaml
+      Parameters:
+        HttpIngressPort: !Ref HttpIngressPort
+        ALBName: !Ref ALBName
 
   EFSStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: ALBStack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/or-cf-templates/efs_template.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/efs_template.yaml
+      Parameters:
+        EFSName: !Ref EFSName
+        AMIId: !Ref AMIId
+        EC2Type: !Ref EC2Type
+        KeysName: !Ref KeysName
 
   ECSStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: EFSStack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/or-cf-templates/ecs_template.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/ecs_template.yaml
+      Parameters:
+        HttpIngressPort: !Ref HttpIngressPort
+        ECSClusterName: !Ref ECSClusterName
+        ECSClusterCapacityProvider: !Ref ECSClusterCapacityProvider
+        ECSTaskDefinitionFamilyName: !Ref ECSTaskDefinitionFamilyName
+        ECSTaskDefinitionImage: !Ref ECSTaskDefinitionImage
+        CPUAmount: !Ref CPUAmount
+        MemoryAmount: !Ref MemoryAmount
+        ECSServiceTasksCount: !Ref ECSServiceTasksCount
