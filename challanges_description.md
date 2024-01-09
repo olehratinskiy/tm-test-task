@@ -19,3 +19,13 @@ During the completion of this task, I encountered challenges that took more time
 
 #### Solution:
 > To troubleshoot I added script to stdout and stderr to files. Then manually connected to EC2 and checked the contents of these files.
+
+### 4. Had difficulties with creating list parameters
+#### Challenge:
+> I wanted to create a list parameter (e.g. for public subnets CIDRs) with two default values and use the Select function to refer to each by indexes. I tried various solutions (including list<string>, CommaDelimitedList) but could not resolve an error.
+
+#### Error:
+> ValidationError - Template format error: Every Default member must be a string.
+
+#### Solution:
+> I still could not finally resolve that error, so I used a more straightforward approach: used only separate string and number parameters without lists. 
