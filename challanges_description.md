@@ -22,7 +22,7 @@ During the completion of this task, I encountered challenges that took more time
 
 ### 4. Had difficulties with creating list parameters
 #### Challenge:
-> I wanted to create a list parameter (e.g. for public subnets CIDRs) with two default values and use the Select function to refer to each by indexes. I tried various solutions (including list<string>, CommaDelimitedList) but could not resolve an error.
+> I wanted to create a list parameter (e.g. for public subnets CIDRs) with two default values and use the Select function to refer to each by indexes. I tried various solutions (including list\<string\>, CommaDelimitedList) but could not resolve an error.
 
 #### Error:
 > ValidationError - Template format error: Every Default member must be a string.
