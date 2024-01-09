@@ -7,7 +7,7 @@
 4. Then navigate to S3 and load all files from templates folder.
 5. After that go to CloudFormation service, select "Create stack" "With new resources".
 6. In the block "Specify template" choose "Amazon S3 URL".
-7. Input url to your root template in S3 bucket https://s3.amazonaws.com/<bucket-name>/root_stack_template.yaml
+7. Input url to your root template in S3 bucket https://s3.amazonaws.com/\<bucket-name\>/root_stack_template.yaml
 8. In the block "Provide a stack name" input the name for deploying the stack and click "Next" at the bottom of the page.
 9. Scroll to the bottom of the page and click "Next".
 10. Scroll to the bottom of the page, select all checkboxes and click "Submit".
