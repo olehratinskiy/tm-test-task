@@ -1,10 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
+
+# Creation of all parameters which are related to nested templates
 Parameters:
+  # Setting variable for S3 link
   S3BucketName:
     Type: String
     Default: or-cf-templates
     Description: S3 templates bucket name
 
+  # VPC with two AZs
   TaskVpcCidr:
     Type: String
     Default: 10.0.0.0/24
@@ -20,6 +24,7 @@ Parameters:
     Default: us-east-1b
     Description: Availability zone for subnet B
 
+  # Two public subnets (for igw and nat) CIDR blocks values
   PublicSubnetCidrA:
     Type: String
     Default: 10.0.0.0/28
@@ -30,6 +35,7 @@ Parameters:
     Default: 10.0.0.16/28
     Description: CIDR for subnet B
 
+  # Two private subnets (for running ECS tasks) CIDR blocks values
   PrivateSubnetCidrA:
     Type: String
     Default: 10.0.0.32/28
@@ -40,6 +46,7 @@ Parameters:
     Default: 10.0.0.48/28
     Description: CIDR for subnet B
 
+  # Setting security and IAM parameters
   AllDestinationsCidr:
     Type: String
     Default: 0.0.0.0/0
@@ -60,16 +67,18 @@ Parameters:
     Default: 80
     Description: HTTP port number which is open for ingress
 
-  ALBName:
-    Type: String
-    Default: tm-devops-trainee-alb
-    Description: Name of ALB
-
   EFSIngressPort:
     Type: Number
     Default: 2049
     Description: EFS port number which is open for ingress
 
+  # Setting ALB name parameter
+  ALBName:
+    Type: String
+    Default: tm-devops-trainee-alb
+    Description: Name of ALB
+
+  # Setting EFS template parameters
   EFSName:
     Type: String
     Default: tm-devops-trainee-efs
@@ -90,6 +99,7 @@ Parameters:
     Default: main
     Description: Name of EC2 keys
 
+  # Setting ECS template parameters
   ECSClusterName:
     Type: String
     Default: ECSCluster
@@ -125,7 +135,7 @@ Parameters:
     Default: 2
     Description: Number of service tasks
 
-
+# Definition of nested stacks using their S3 URLs and importing their parameters
 Resources:
   NetworkingStack:
     Type: AWS::CloudFormation::Stack
@@ -140,6 +150,9 @@ Resources:
         PrivateSubnetCidrA: !Ref PrivateSubnetCidrA
         PrivateSubnetCidrB: !Ref PrivateSubnetCidrB
         AllDestinationsCidr: !Ref AllDestinationsCidr
+      Tags:
+        - Key: Name
+          Value: NetworkingStack
 
   SecurityIAMStack:
     Type: AWS::CloudFormation::Stack
@@ -152,6 +165,9 @@ Resources:
         EFSRolePolicy: !Ref EFSRolePolicy
         HttpIngressPort: !Ref HttpIngressPort
         EFSIngressPort: !Ref EFSIngressPort
+      Tags:
+        - Key: Name
+          Value: SecurityIAMStack
 
   ALBStack:
     Type: AWS::CloudFormation::Stack
@@ -161,6 +177,9 @@ Resources:
       Parameters:
         HttpIngressPort: !Ref HttpIngressPort
         ALBName: !Ref ALBName
+      Tags:
+        - Key: Name
+          Value: ALBStack
 
   EFSStack:
     Type: AWS::CloudFormation::Stack
@@ -172,6 +191,9 @@ Resources:
         AMIId: !Ref AMIId
         EC2Type: !Ref EC2Type
         KeysName: !Ref KeysName
+      Tags:
+        - Key: Name
+          Value: EFSStack
 
   ECSStack:
     Type: AWS::CloudFormation::Stack
@@ -187,3 +209,6 @@ Resources:
         CPUAmount: !Ref CPUAmount
         MemoryAmount: !Ref MemoryAmount
         ECSServiceTasksCount: !Ref ECSServiceTasksCount
+      Tags:
+        - Key: Name
+          Value: ECSStack

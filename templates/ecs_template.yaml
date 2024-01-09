@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# Import of parameters that are defined in root template
 Parameters:
   HttpIngressPort:
     Type: Number
@@ -26,13 +27,18 @@ Parameters:
 
 
 Resources:
+  # Creation of ECS Cluster for ECS service
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: !Ref ECSClusterName
       CapacityProviders:
         - !Ref ECSClusterCapacityProvider
+      Tags:
+        - Key: Name
+          Value: ECSCluster
 
+  # Creation of instructions for ECS containers
   WebPageTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -62,7 +68,11 @@ Resources:
             FilesystemId:
               Fn::ImportValue: WebPageEFS
             RootDirectory: /
+      Tags:
+        - Key: Name
+          Value: WebPageTaskDefinition
 
+  # Creation of ECS service that starts tasks
   WebPageService:
     Type: AWS::ECS::Service
     Properties:
@@ -84,3 +94,6 @@ Resources:
           TargetGroupArn:
             Fn::ImportValue: WebPageTargetGroup
       TaskDefinition: !Ref WebPageTaskDefinition
+      Tags:
+        - Key: Name
+          Value: WebPageService

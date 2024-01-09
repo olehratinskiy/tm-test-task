@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# Import of parameters that are defined in root template
 Parameters:
   AllDestinationsCidr:
     Type: String
@@ -16,6 +17,7 @@ Parameters:
     Type: Number
 
 Resources:
+  # Creation of security groups for ALB, EFS, and ECS to allow/restrict access
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -70,6 +72,7 @@ Resources:
         - Key: Name
           Value: EFSSecurityGroup
 
+  # Creation of IAM resources to grant priviledges for ECS and EC2
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -84,6 +87,9 @@ Resources:
       ManagedPolicyArns:
         - !Ref ECSRolePolicy
         - !Ref EFSRolePolicy
+      Tags:
+        - Key: Name
+          Value: TaskRole
 
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -91,6 +97,7 @@ Resources:
       Roles:
         - !Ref TaskRole
 
+# Usage of outputs and "Export functions" to export created resources values to other templates
 Outputs:
   ALBSecurityGroup:
     Description: Reference to load balancer security group

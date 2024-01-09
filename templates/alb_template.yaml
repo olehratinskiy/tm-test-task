@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# Import of parameters that are defined in root template
 Parameters:
   HttpIngressPort:
     Type: Number
@@ -7,6 +8,7 @@ Parameters:
     Type: String
 
 Resources:
+  # Creation of ALB
   WebPageALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -18,7 +20,11 @@ Resources:
       Subnets:
         - Fn::ImportValue: PublicSubnetA
         - Fn::ImportValue: PublicSubnetB
+      Tags:
+        - Key: Name
+          Value: WebPageALB
 
+  # Definition of target group where traffic should be routed
   WebPageTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: WebPageALB
@@ -36,7 +42,11 @@ Resources:
       UnhealthyThresholdCount: 2
       VpcId:
         Fn::ImportValue: TaskVPC
+      Tags:
+        - Key: Name
+          Value: WebPageTargetGroup
 
+  # Creation of listener for ALB that processes HTTP traffic
   WebPageListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -47,7 +57,7 @@ Resources:
       Port: !Ref HttpIngressPort
       Protocol: HTTP
 
-
+# Usage of outputs and "Export functions" to export created resources values to other templates
 Outputs:
   TargetGroup:
     Description: Reference to target group

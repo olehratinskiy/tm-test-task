@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# Import of parameters that are defined in root template
 Parameters:
   TaskVpcCidr:
     Type: String
@@ -25,6 +26,7 @@ Parameters:
     Type: String
 
 Resources:
+  # VPC creation
   TaskVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -35,6 +37,7 @@ Resources:
         - Key: Name
           Value: TaskVPC
 
+  # Two public subnets which will have IGW route, NAT gateway, and will host ALB
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -57,6 +60,7 @@ Resources:
         - Key: Name
           Value: PublicSubnetB
 
+  # Two private subnets which will run ECS tasks, and will have internet access through NAT gateway
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -79,6 +83,7 @@ Resources:
         - Key: Name
           Value: PrivateSubnetB
 
+  # Route table that will be used for public routes
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -87,6 +92,7 @@ Resources:
         - Key: Name
           Value: PublicRouteTable
 
+  # Creation and adding IGW to PublicRT
   TaskIGW:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -100,6 +106,7 @@ Resources:
       InternetGatewayId: !Ref TaskIGW
       VpcId: !Ref TaskVPC
 
+  # Attaching public subnets to public rt
   PublicSubnetAAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -119,6 +126,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: !Ref AllDestinationsCidr
 
+  # Creation of NAT (in public subnet) through which private subnets will access internet
   NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
@@ -132,7 +140,11 @@ Resources:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
+      Tags:
+        - Key: Name
+          Value: NATGatewayEIP
 
+  # Creation of private rt for private subnets to redirect all outbound traffic to NAT
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -160,6 +172,7 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: !Ref AllDestinationsCidr
 
+# Usage of outputs and "Export functions" to export created resources values to other templates
 Outputs:
   VPC:
     Description: Reference to VPC

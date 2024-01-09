@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# Import of parameters that are defined in root template
 Parameters:
   EFSName:
     Type: String
@@ -14,6 +15,7 @@ Parameters:
 
 
 Resources:
+  # Creation of EFS that will store html file
   WebPageEFS:
     Type: AWS::EFS::FileSystem
     Properties:
@@ -26,6 +28,7 @@ Resources:
         - Key: Name
           Value: !Ref EFSName
 
+  # Creation of two EFS mount points to each private subnet
   MountTargetSubnetA:
     Type: AWS::EFS::MountTarget
     Properties:
@@ -44,6 +47,7 @@ Resources:
       SecurityGroups:
         - Fn::ImportValue: EFSSecurityGroup
 
+  # Creation of temporary EC2 that will load html file to WebPageEFS
   TmpEC2:
     Type: AWS::EC2::Instance
     Properties:
@@ -78,7 +82,11 @@ Resources:
                   <h1> Hello, Techmagic! </h1>
               </body>
           </html>" > index.html'
+      Tags:
+        - Key: Name
+          Value: TmpEC2
 
+# Usage of outputs and "Export functions" to export created resources values to other templates
 Outputs:
   WebPageEFS:
     Description: Reference to tm-devops-trainee-efs
